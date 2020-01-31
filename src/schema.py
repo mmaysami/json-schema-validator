@@ -64,7 +64,7 @@ class Json_Validator(object):
     """
 
     # ----------------------------------------------------------------------
-    def __init__(self, schema_file=os.path.join('data', 'schema_gm.json')):
+    def __init__(self, schema_file=os.path.join('..//schema', 'schema.json')):
 
         # Find Absolute Path of schema_file
         if not os.path.isabs(schema_file):
@@ -187,8 +187,9 @@ class Json_Validator(object):
 if __name__ == '__main__':
     print("%2s===> JSON Validation Class" % (""))
 
-    relative_path = os.path.join('data', 'sample_invalid.json')
+    relative_path = os.path.join('..//schema', 'sample_invalid.json')
     absolute_path = os.path.join(os.path.dirname(__file__), relative_path)
+
 
     print("%6s---> Reading JSON Data File: %s" % ("", absolute_path))
     with open(absolute_path) as json_data_file:
