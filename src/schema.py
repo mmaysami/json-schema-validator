@@ -13,9 +13,10 @@
 import os
 import time
 import json
-import fastjsonschema
 from jsonschema import validate, ValidationError
 from jsonschema.validators import validator_for
+from fastjsonschema import compile as fjs_compile, validate as fjs_validate
+from fastjsonschema.exceptions import JsonSchemaException as fjs_JsonSchemaException
 
 __all__ = ['Json_Validator']
 
@@ -25,9 +26,9 @@ __all__ = ['Json_Validator']
 # ======================================================================
 def timeit(method):
     def timed(*args, **kw):
-        ts = time.time()
+        ts = time.perf_counter()
         result = method(*args, **kw)
-        te = time.time()
+        te = time.perf_counter()
         if 'log_time' in kw:
             name = kw.get('log_name', method.__name__.upper())
             kw['log_time'][name] = int((te - ts) * 1000)
@@ -89,7 +90,7 @@ class Json_Validator(object):
         self.validator_fast = self.validator(self.schema)
 
         # Create Fast JS Validator
-        self.validator_fjs = fastjsonschema.compile(self.schema)
+        self.validator_fjs = fjs_compile(self.schema)
 
     # ----------------------------------------------------------------------
     @timeit
@@ -119,7 +120,7 @@ class Json_Validator(object):
         """
         try:
             self.validator_fjs(json_input)
-        except ValidationError as err:
+        except fjs_JsonSchemaException as err:
             print(self.message)
             print(err)
             return False
@@ -170,8 +171,8 @@ class Json_Validator(object):
         :return: Boolean Valid Flag 
         """
         try:
-            fastjsonschema.validate(self.schema, json_input)
-        except ValidationError as err:
+            fjs_validate(self.schema, json_input)
+        except fjs_JsonSchemaException as err:
             print(self.message)
             print(err)
             return False
