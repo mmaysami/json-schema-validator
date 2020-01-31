@@ -1,0 +1,45 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "#/properties/expansionData",
+  "type": "object",
+  "title": "The Expansion Data Schema",
+  "required": [
+    "CountryAdjustment",
+    "CodeAdjustment",
+    "OtherAdjustment"
+  ],
+  "properties": {
+    "CountryAdjustment": {
+      "$id": "#/properties/expansionData/CountryAdjustment",
+      "type": "number",
+      "title": "The CountryAdjustment Schema",
+      "examples": [1],
+      "minimum": 0.5,
+      "maximum": 1.5
+    },
+    "CodeAdjustment": {
+      "$id": "#/properties/expansionData/CodeAdjustment",
+      "type": "number",
+      "title": "The CodeAdjustment Schema",
+      "default": 0,
+      "examples": [0],
+      "minimum": 0.0,
+      "maximum": 100.0
+    },
+    "OtherAdjustment": {
+      "$id": "#/properties/expansionData/OtherAdjustment",
+      "type": "array",
+      "title": "The OtherAdjustment Schema",
+      "description": "By Period OtherAdjustment [List of floats]",
+      "default": null,
+      "items": {
+        "$id": "#/properties/expansionData/OtherAdjustment/items",
+        "type": "number",
+        "title": "The Items Schema",
+        "description": "By Period OtherAdjustment Items [floats]",
+        "examples": [102,91,93.3,92.5,106.7,100,102,106.5,98,107.5,119,93.6,89]
+      }
+    }
+  }
+}

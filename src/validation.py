@@ -10,15 +10,37 @@
 # Licence:      See Git
 # -------------------------------------------------------------------------------
 """
-import os
+import platform
+from os.path import join, dirname, isabs, exists
+import logging
 import time
 import json
-from jsonschema import validate, ValidationError
-from jsonschema.validators import validator_for
+import jsonref
 from fastjsonschema import compile as fjs_compile, validate as fjs_validate
 from fastjsonschema.exceptions import JsonSchemaException as fjs_JsonSchemaException
+from jsonschema import validate, ValidationError
+from jsonschema.validators import validator_for
 
 __all__ = ['Json_Validator']
+
+logIt = True
+if logIt:
+    loggingConfig = {'level': logging.DEBUG,
+                     'format': '[%(asctime)s][%(levelname)s]:%(message)s',
+                     'datefmt': '%m/%d/%Y %I:%M:%S %p'
+                     }
+    logging.basicConfig(**loggingConfig)
+    logger = logging.getLogger(__name__)
+
+# -----------------------------------------
+#   Init. Folder/File Constants
+# -----------------------------------------
+folder_schema = join('..', 'schema', 'nested')
+file_schema = 'schema_nested.json'
+
+
+# file_valid = 'sample_valid.json'
+# file_invalid = 'sample_invalid.json'
 
 
 # ======================================================================
@@ -33,9 +55,13 @@ def timeit(method):
             name = kw.get('log_name', method.__name__.upper())
             kw['log_time'][name] = int((te - ts) * 1000)
         else:
-            print('%6s<--- %s function executed in %2.2f ms' % ("",
-                                                                method.__name__,
-                                                                (te - ts) * 1000))
+            logger.info('%6s<--- %s function executed in %2.2f ms' % ("",
+                                                                      method.__name__,
+                                                                      (te - ts) * 1000))
+
+            # print('%6s<--- %s function executed in %2.2f ms' % ("",
+            #                                                     method.__name__,
+            #                                                     (te - ts) * 1000))
         return result
 
     return timed
@@ -49,7 +75,8 @@ class Json_Validator(object):
     Class of JSON Schema Validation for GM and Sub-Models
 
     Note1: benchmarks based on https://www.peterbe.com/plog/jsonschema-validate-10x-faster-in-python
-    Note2: use https://jsonschema.net for defining schema
+    Note2: Inferring schemas from examples using https://jsonschema.net
+    Note3: Defining complex/referenced schema based on https://medium.com/grammofy/handling-complex-json-schemas-in-python-9eacc04a60cf
 
     # json Schema
     # validate(instance, schema, cls=None)
@@ -65,13 +92,13 @@ class Json_Validator(object):
     """
 
     # ----------------------------------------------------------------------
-    def __init__(self, schema_file=os.path.join('..//schema', 'schema.json')):
+    def __init__(self, schema_file=join(folder_schema, file_schema)):
 
         # Find Absolute Path of schema_file
-        if not os.path.isabs(schema_file):
-            schema_file = os.path.join(os.path.dirname(__file__), schema_file)
+        if not isabs(schema_file):
+            schema_file = join(dirname(__file__), schema_file)
 
-        if not os.path.exists(schema_file):
+        if not exists(schema_file):
             raise ValueError("Cannot create class instance with no/missing schema file.")
 
         # Message for Invalid Jsons
@@ -81,8 +108,20 @@ class Json_Validator(object):
         self.schema_file = schema_file
 
         # Load schema from file to class
+        # Notes: https://github.com/Julian/jsonschema/issues/98#issuecomment-105475109
+        # with open(os.path.join(absolute_path_to_base_directory, base_filename)) as file_object:
+        #     schema = json.load(file_object)
+        # resolver = jsonschema.RefResolver('file:///' + absolute_path_to_base_directory.replace("\\", "/") + '/', schema)
+        # jsonschema.Draft4Validator(schema, resolver=resolver).validate(data)
+        base_path = dirname(self.schema_file)
+        if platform.system().lower() in ["windows"]:
+            base_uri = 'file:///{}/'.format(base_path.replace("\\", "/"))
+        elif platform.system().lower() in ["linux"]:
+            base_uri = 'file://{}/'.format(base_path.replace("\\", "/"))
+
         with open(self.schema_file) as schema_file:
-            self.schema = json.loads(schema_file.read())
+            # self.schema = json.loads(schema_file.read())
+            self.schema = jsonref.loads(schema_file.read(), base_uri=base_uri, jsonschema=True)
 
         # Create JS Validator
         self.validator = validator_for(self.schema)
@@ -184,40 +223,51 @@ class Json_Validator(object):
 # ==========                           MAIN                                   ==========
 # ======================================================================================
 # --------------------------------------------------------------------------------------
-# Running independent benchmark of class
+# Running independent benchmarks of schema validator class
 if __name__ == '__main__':
-    print("%2s===> JSON Validation Class" % (""))
 
-    relative_path = os.path.join('..//schema', 'sample_invalid.json')
-    absolute_path = os.path.join(os.path.dirname(__file__), relative_path)
+    # Unified Nested Schema
+    folder_test = join('..', 'schema', 'flat')
+    file_test = 'schema_flat.json'
+    test_valid = 'sample_valid.json'
+    test_invalid = 'sample_invalid.json'
 
+    # Complex (Referenced) Nested Schema
+    folder_test = join('..','schema', 'nested')
+    file_test = 'schema_nested.json'
+    test_valid = 'sample_valid.json'
+    test_invalid = 'sample_invalid.json'
 
-    print("%6s---> Reading JSON Data File: %s" % ("", absolute_path))
+    logger.info("%2s===> JSON Validation Class" % (""))
+    relative_path = join(folder_test, test_invalid)
+    absolute_path = join(dirname(__file__), relative_path)
+
+    logger.info("%6s---> Reading JSON Data File: %s" % ("", absolute_path))
     with open(absolute_path) as json_data_file:
         json_data = json.loads(json_data_file.read())
 
-    print("%6s---> Create Validator Class Instance" % (""))
-    jv = Json_Validator()
+    logger.info("%6s---> Create Validator Class Instance" % (""))
+    jv = Json_Validator(join(folder_test, file_test))
 
-    print("\n  ", "-" * 50)
-    print("%6s---> Validation Function Json Schema" % (""))
+    logger.info("\n" + "-" * 75)
+    logger.info("%6s---> Validation Function Json Schema" % (""))
     jv.validate(json_data)
 
-    print("\n  ", "-" * 50)
-    print("%6s---> Validation Function Fast Json Schema" % (""))
+    logger.info("\n" + "-" * 75)
+    logger.info("%6s---> Validation Function Fast Json Schema" % (""))
     jv.validate_fjs(json_data)
 
-    print("\n  ", "-" * 50)
-    print("%6s---> Validation Function Benchmark _3" % (""))
+    logger.info("\n" + "-" * 75)
+    logger.info("%6s---> Validation Function Benchmark _1" % (""))
     jv._validate1(json_data)
 
-    print("\n  ", "-" * 50)
-    print("%6s---> Validation Function Benchmark _4" % (""))
+    logger.info("\n" + "-" * 75)
+    logger.info("%6s---> Validation Function Benchmark _2" % (""))
     jv._validate2(json_data)
 
-    print("\n  ", "-" * 50)
-    print("%6s---> Validation Function Benchmark _5" % (""))
+    logger.info("\n" + "-" * 75)
+    logger.info("%6s---> Validation Function Benchmark _3" % (""))
     jv._validate3(json_data)
 
-    print("\n  ", "-" * 50)
-    print("%2s<=== Validation Completed" % (""))
+    logger.info("\n" + "-" * 75)
+    logger.info("%2s<=== Validation Completed" % (""))

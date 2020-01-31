@@ -1,0 +1,13 @@
+{
+  "commonData": {
+    "CountryOfField": "USA___",
+    "CountryDesc": "United States",
+    "CategoryCode": "222000",
+    "VersionDate": "20190901"
+  },
+  "expansionData": {
+    "CountryAdjustment": 1,
+    "CodeAdjustment": 0,
+    "OtherAdjustment": [92.5, 106.7, 100.0, 119.0]
+  }
+}

@@ -1,0 +1,64 @@
+{
+	"definitions": {},
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "#/commonData",
+	"type": "object",
+	"title": "The Common Schema",
+	"required": [
+		"CountryOfField",
+		"CountryDesc",
+		"CategoryCode",
+		"VersionDate"
+	],
+	"properties": {
+		"CountryOfField": {
+			"$id": "#/properties/commonData/properties/CountryOfField",
+			"type": "string",
+			"title": "The Countryoffield Schema",
+			"description": "Country Code",
+			"default": "",
+			"examples": ["USA___"],
+			"pattern": "^([a-zA-Z_]{6})$"
+		},
+		"CountryDesc": {
+			"$id": "#/properties/commonData/properties/CountryDesc",
+			"type": "string",
+			"title": "The Countrydesc Schema",
+			"description": "Country Description",
+			"examples": ["United States"],
+			"pattern": "^(.*)$"
+		},
+		"CategoryCode": {
+			"$id": "#/properties/commonData/properties/CategoryCode",
+			"type": "string",
+			"title": "The Categorycode Schema",
+			"description": "Category Code",
+			"examples": ["123456"],
+			"pattern": "^([0-9]{6})$"
+		},
+		"VersionDate": {
+			"$id": "#/properties/commonData/properties/VersionDate",
+			"type": "string",
+			"title": "The Versiondate Schema",
+			"description": "Model Version Date",
+			"examples": ["20200130"],
+			"pattern": "^([0-9]{8})$"
+		},
+		"OptionalCode1": {
+			"$id": "#/properties/commonData/properties/OptionalCode1",
+			"type": "string",
+			"title": "The Optional Code1 Schema",
+			"description": "Some Optional Code Placeholder",
+			"examples": ["654321"],
+			"pattern": "^([0-9]{6})$"
+		},
+		"OptionalCode2": {
+			"$id": "#/properties/commonData/properties/OptionalCode2",
+			"type": "string",
+			"title": "The Optional Code2 Schema",
+			"description": "Some Optional Code Placeholder",
+			"examples": ["567890"],
+			"pattern": "^([0-9]{6})$"
+		}
+	}
+}
